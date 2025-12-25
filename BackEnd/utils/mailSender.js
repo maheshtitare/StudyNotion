@@ -1,29 +1,39 @@
-const nodemailer = require("nodemailer")
+// mailSender.js
+// Uses Brevo Email API (HTTP) – Render safe
+
+const axios = require("axios");
 
 const mailSender = async (email, title, body) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST,
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "StudyNotion",
+          email: "maheshtitare748@gmail.com", // ✅ VERIFIED BREVO EMAIL
+        },
+        to: [{ email }],
+        subject: title,
+        htmlContent: body,
       },
-    })
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+        timeout: 15000,
+      }
+    );
 
-    const info = await transporter.sendMail({
-      from: `"StudyNotion" <${process.env.MAIL_USER}>`,
-      to: email,
-      subject: title,
-      html: body,
-    })
-
-    return info
+    console.log("EMAIL SENT VIA BREVO API ✅", response.data);
+    return response.data;
   } catch (error) {
-    console.log("MAIL ERROR:", error.message)
-    throw error
+    console.error(
+      "BREVO API ERROR ❌",
+      error.response?.data || error.message
+    );
+    throw error;
   }
-}
+};
 
-module.exports = mailSender
+module.exports = mailSender;
