@@ -152,48 +152,49 @@ exports.login = async (req, res) => {
   }
 }
 
-// ================= SEND OTP =================
+// ================= SEND OTP CONTROLLER (TEST MODE) =================
 exports.sendotp = async (req, res) => {
-  try {
-    const { email } = req.body
+  console.log("REQ BODY 👉", req.body);
+  console.log("EMAIL 👉", req.body.email);
 
-    const userExists = await User.findOne({ email })
+  try {
+    const { email } = req.body;
+
+    const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(401).json({
         success: false,
-        message: "User already registered",
-      })
+        message: "User is Already Registered",
+      });
     }
-
-    // clear old OTPs
-    await OTP.deleteMany({ email })
 
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
       specialChars: false,
-    })
+    });
 
-    await OTP.create({ email, otp })
+    await OTP.create({ email, otp });
 
     await mailSender(
       email,
-      "StudyNotion - Email Verification OTP",
+      "StudyNotion - Email Verification",
       `<h2>Your OTP is: ${otp}</h2>`
-    )
+    );
 
     return res.status(200).json({
       success: true,
       message: "OTP Sent Successfully",
-    })
+    });
   } catch (error) {
-    console.error(error)
+    console.error("SEND OTP ERROR 👉", error);
     return res.status(500).json({
       success: false,
       message: "Could Not Send OTP",
-    })
+    });
   }
-}
+};
+
 
 // ================= CHANGE PASSWORD =================
 exports.changePassword = async (req, res) => {
